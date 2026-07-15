@@ -377,9 +377,30 @@ def update_paper_positions(current_price: float, atr_val: float):
     return surviving
 
 
+def check_connection(conn: MetaApiConnection) -> bool:
+    """Check if connection is alive, reconnect if needed."""
+    try:
+        acc = conn.get_account_info()
+        if acc and "balance" in acc:
+            return True
+    except Exception as e:
+        logger.warning(f"Connection lost ({e}), reconnecting...")
+        try:
+            conn._initialized = False
+            return conn.initialize()
+        except:
+            return False
+    return False
+
+
 def v22_cycle(conn: MetaApiConnection):
     """Single analysis + execution cycle (matches backtest exactly)."""
     global positions, last_entry, daily_pnl, last_processed_m15_time
+
+    # Check connection first
+    if not check_connection(conn):
+        logger.warning("Skipping cycle - no connection")
+        return
 
     data = fetch_live_data(conn)
     if data is None:

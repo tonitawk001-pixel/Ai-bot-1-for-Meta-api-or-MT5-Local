@@ -41,7 +41,7 @@ from trading_bot.metaapi.data_feed import get_candles
 from trading_bot.indicators.technical_indicators import compute_all_indicators
 from trading_bot.strategy.gold_scalping_strategy import GoldScalpingStrategy
 from trading_bot.strategy.gold_volatility_filter import GoldVolatilityFilter
-from trading_bot.metaapi.executor import execute_trade
+from trading_bot.metaapi.executor import execute_trade, close_position
 
 
 # === V22 CONFIG ===
@@ -237,13 +237,9 @@ def startup_test(conn: MetaApiConnection):
             order_id = exec_result[0].get("order_id", "")
             logger.info(f"STARTUP TEST: Position opened (ID: {order_id}), closing in 30s")
             time.sleep(30)
-            close_result = execute_trade(
-                action="SELL", symbol=SYMBOL, lot_size=0.01,
-                sl=0, tp=0, ohlcv=pd.DataFrame(),
-                risk_evaluation={"approved": True, "adjusted_lot_scale": 1.0},
-                position_id=order_id,
-            )
-            if close_result and close_result[0].get("success"):
+            # Use close_position to ONLY close the specific test trade, not create a new order
+            close_result = close_position(position_id=order_id)
+            if close_result and close_result.get("success"):
                 logger.info("=== STARTUP TEST: Position CLOSED — Connection OK ===")
             else:
                 logger.warning(f"STARTUP TEST: Opened but close result: {close_result}")
@@ -287,13 +283,9 @@ def heartbeat_test(conn: MetaApiConnection):
             order_id = exec_result[0].get("order_id", "")
             logger.info(f"HEARTBEAT: Test trade opened, closing in {HEARTBEAT_CLOSE_AFTER_SECONDS}s")
             time.sleep(HEARTBEAT_CLOSE_AFTER_SECONDS)
-            close_result = execute_trade(
-                action="SELL", symbol=SYMBOL, lot_size=0.01,
-                sl=0, tp=0, ohlcv=pd.DataFrame(),
-                risk_evaluation={"approved": True, "adjusted_lot_scale": 1.0},
-                position_id=order_id,
-            )
-            if close_result and close_result[0].get("success"):
+            # Use close_position to ONLY close this specific test trade
+            close_result = close_position(position_id=order_id)
+            if close_result and close_result.get("success"):
                 logger.info(f"HEARTBEAT: Connection is ALIVE.")
             else:
                 logger.warning(f"HEARTBEAT: opened but close result: {close_result}")

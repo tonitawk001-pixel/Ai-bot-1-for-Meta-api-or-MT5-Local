@@ -571,18 +571,44 @@ def update_paper_positions(current_price: float, atr_val: float):
     return surviving
 
 
-def check_connection(conn: MetaApiConnection) -> bool:
+def sync_state_with_broker(conn: MetaApiConnection):
+    """Fetch live positions from MetaApi and remove stale entries from bot_state.json."""
+    global positions
     try:
-        acc = conn.get_account_info()
-        if acc and "balance" in acc:
-            return True
+        live_positions = conn.get_positions(symbol=SYMBOL)
+        live_ids = set(p.get("id", "") for p in live_positions if p.get("id"))
+        before = len(positions)
+        positions = [p for p in positions if p.get("position_id", "") in live_ids]
+        removed = before - len(positions)
+        if removed > 0:
+            logger.warning(f"[STATE SYNC] Removed {removed} stale/orphaned positions from state")
+        if live_ids:
+            logger.info(f"[STATE SYNC] Broker has {len(live_ids)} live positions, tracking {len(positions)}")
     except Exception as e:
-        logger.warning(f"Connection lost ({e}), reconnecting...")
+        logger.warning(f"[STATE SYNC] Could not sync (non-fatal): {e}")
+
+
+def check_connection(conn: MetaApiConnection) -> bool:
+    """Hardened connection check with retry loop."""
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
         try:
-            conn._initialized = False
-            return conn.initialize()
-        except:
-            return False
+            acc = conn.get_account_info()
+            if acc and "balance" in acc:
+                if attempt > 1:
+                    logger.info(f"[CONNECT] Reconnected on attempt {attempt}")
+                return True
+        except Exception as e:
+            logger.warning(f"[CONNECT] Attempt {attempt}/{max_retries} failed: {e}")
+            if attempt < max_retries:
+                conn._initialized = False
+                time.sleep(5 * attempt)  # Progressive backoff: 5s, 10s, 15s
+                try:
+                    if conn.initialize():
+                        return True
+                except:
+                    pass
+    logger.critical("[CONNECT] All reconnection attempts failed — manual intervention required")
     return False
 
 
@@ -860,6 +886,9 @@ def run_v22():
 
     load_state()
     last_date = datetime.now(timezone.utc).date()
+
+    # State sync: clean orphaned positions from bot_state.json
+    sync_state_with_broker(conn)
 
     if not is_paused():
         startup_test(conn)

@@ -1,22 +1,11 @@
 """
-V22 Gold Scalping Bot — MetaApi Cloud Edition (FINAL v4)
+V22 Gold Scalping Bot — MetaApi Cloud Edition (FINAL v4.2)
 =======================================================
-EXACT replication of backtest behavior in live trading.
-
-FIXES (v4.1):
-  1. GoldVolatilityFilter no longer crashes — passes real DataFrame, not None
-  2. Heartbeat test: every 60 min opens 0.01 BUY, closes after 30s
-  3. Session filter: London 08-17 + NY 13-22 UTC
-  4. Conservative: MAX_POSITIONS=1
-  5. Better TP: 3.5x ATR
-  6. Halt: 6h pause after 3 losses
-  7. Graduated risk: 0.5%→3%
-  8. Vol filter fixed
-  9. Symmetric EMA200 filter (BUY & SELL)
- 10. **NEW**: M15-close gate — only act when new M15 candle closes (matches backtest)
- 11. **NEW**: Exact window sizes — match backtest exactly
- 12. **NEW**: Spread fix — backtest uses 0.5 pip (matches)
- 13. **NEW**: State persistence — survives restarts
+IMPROVEMENTS (v4.2):
+  1. Dynamic Spread Filter — blocks entry if XAUUSD spread > 30 points ($0.30)
+  2. High-Impact USD News Filter — pauses entries around major news via MetaApi calendar
+  3. Dynamic ADX-based Take Profit — 5x ATR when ADX > 25, else 3.5x ATR
+  4. Detailed Logging — clear [REJECTED] messages with exact reason
 """
 
 import os
@@ -57,7 +46,8 @@ TRADE_HOURS_START = 8
 TRADE_HOURS_END = 22
 
 # Position management
-TP_ATR_MULT = 3.5
+TP_ATR_MULT = 3.5      # Default: 3.5x ATR
+TP_ATR_MULT_TREND = 5.0  # Dynamic: 5x ATR when ADX > 25 (strong trend)
 SL_ATR_MULT = 1.5
 BE_ATR_MULT = 2.0
 TRAIL_ATR_MULT = 0.7
@@ -83,6 +73,18 @@ HEARTBEAT_CLOSE_AFTER_SECONDS = 30
 # Spread (matches backtest exactly — 0.5 pips)
 BACKTEST_SPREAD_PIPS = 0.50
 
+# === NEW v4.2 CONFIG ===
+# Dynamic Spread Filter (XAUUSD specific)
+MAX_SPREAD_POINTS = 30  # Block if spread > 30 points ($0.30 for XAUUSD)
+
+# News filter config
+NEWS_PAUSE_MINUTES_BEFORE = 30   # Pause 30 min before high-impact event
+NEWS_RESUME_MINUTES_AFTER = 15   # Resume 15 min after event
+NEWS_CACHE_HOURS = 6             # Re-fetch calendar every 6 hours
+
+# ADX threshold for dynamic TP
+ADX_TREND_THRESHOLD = 25  # ADX > 25 = strong trend
+
 # State files
 STATE_FILE = os.path.join(os.path.dirname(__file__), "..", "logs", "bot_state.json")
 PAUSE_FILE = os.path.join(os.path.dirname(__file__), "..", "logs", "paused.flag")
@@ -95,8 +97,13 @@ positions = []
 last_entry = None
 trades_log = []
 last_heartbeat_time = None
-last_processed_m15_time = None  # NEW: gate on M15 close to match backtest
-startup_test_done = False  # Only run startup test once
+last_processed_m15_time = None
+startup_test_done = False
+
+# === NEW v4.2 State ===
+last_spread_check = 0.0        # Last spread value logged
+cached_events = []             # Cached economic calendar events
+events_cache_time = None       # When we last fetched events
 
 
 def get_risk_pct(balance: float) -> float:
@@ -128,7 +135,7 @@ def record_loss():
     consecutive_losses += 1
     if consecutive_losses >= HALT_AFTER_LOSSES:
         halt_until = datetime.now(timezone.utc) + timedelta(hours=HALT_HOURS)
-        logger.warning(f"V22 HALT: {consecutive_losses} consecutive losses -> {HALT_HOURS}h pause")
+        logger.warning(f"[HALT] {consecutive_losses} consecutive losses -> {HALT_HOURS}h pause")
 
 
 def record_win():
@@ -206,6 +213,163 @@ def write_state_for_dashboard(balance: float, equity: float, status: str, cycle:
         pass
 
 
+# ============================================================
+# NEW v4.2: ADX Calculation (in-house, no external dep)
+# ============================================================
+
+def compute_adx(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14) -> pd.Series:
+    """Compute Average Directional Index (ADX) for trend strength."""
+    if len(close) < period * 2:
+        return pd.Series([np.nan] * len(close), index=close.index)
+
+    high = high.astype(float)
+    low = low.astype(float)
+    close = close.astype(float)
+
+    tr = pd.concat([
+        (high - low).abs(),
+        (high - close.shift()).abs(),
+        (low - close.shift()).abs()
+    ], axis=1).max(axis=1)
+
+    up_move = high - high.shift()
+    down_move = low.shift() - low
+    plus_dm = np.where((up_move > down_move) & (up_move > 0), up_move, 0.0)
+    minus_dm = np.where((down_move > up_move) & (down_move > 0), down_move, 0.0)
+
+    atr = tr.ewm(span=period, adjust=False).mean()
+    plus_di = 100 * pd.Series(plus_dm, index=close.index).ewm(span=period, adjust=False).mean() / atr
+    minus_di = 100 * pd.Series(minus_dm, index=close.index).ewm(span=period, adjust=False).mean() / atr
+
+    dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di).replace(0, np.nan)
+    adx = dx.ewm(span=period, adjust=False).mean()
+    return adx
+
+
+# ============================================================
+# NEW v4.2: Spread Check
+# ============================================================
+
+def check_spread(conn: MetaApiConnection) -> tuple:
+    """
+    Check current XAUUSD spread.
+    Returns (ok: bool, spread_points: float, message: str)
+    """
+    global last_spread_check
+    try:
+        price = conn.get_symbol_price(SYMBOL)
+        if price and "bid" in price and "ask" in price:
+            bid = price["bid"]
+            ask = price["ask"]
+            spread_points = (ask - bid) * 100  # Convert to points (cents)
+            last_spread_check = spread_points
+
+            if spread_points > MAX_SPREAD_POINTS:
+                msg = f"[REJECTED] Spread too high: {spread_points:.1f} points (max: {MAX_SPREAD_POINTS})"
+                return False, spread_points, msg
+
+            return True, spread_points, f"Spread OK: {spread_points:.1f} points"
+        return False, 0, "[REJECTED] Could not fetch spread data"
+    except Exception as e:
+        return False, 0, f"[REJECTED] Spread check error: {e}"
+
+
+# ============================================================
+# NEW v4.2: Economic Calendar / News Filter
+# ============================================================
+
+def fetch_high_impact_events(conn: MetaApiConnection) -> list:
+    """
+    Fetch upcoming high-impact USD news events using MetaApi native calendar.
+    Falls back gracefully if unavailable.
+    """
+    global cached_events, events_cache_time
+    now = datetime.now(timezone.utc)
+
+    # Use cache if fresh
+    if events_cache_time and (now - events_cache_time).total_seconds() < NEWS_CACHE_HOURS * 3600:
+        return cached_events
+
+    try:
+        # MetaApi SDK provides calendar via account_api.get_events()
+        calendar = conn.api.metatrader_account_api
+        future_events = conn._run(_async_get_calendar_events(conn, calendar))
+
+        high_impact_usd = []
+        for ev in future_events:
+            country = str(getattr(ev, "country", "") or "").upper()
+            impact = str(getattr(ev, "impact", "") or "").upper()
+            event_time = getattr(ev, "time", None)
+            title = str(getattr(ev, "title", "") or "")
+
+            if country == "USD" and impact == "HIGH" and event_time:
+                ev_dt = event_time if isinstance(event_time, datetime) else datetime.fromisoformat(str(event_time))
+                if ev_dt.tzinfo is None:
+                    ev_dt = ev_dt.replace(tzinfo=timezone.utc)
+                high_impact_usd.append({"time": ev_dt, "title": title})
+
+        cached_events = high_impact_usd
+        events_cache_time = now
+        logger.info(f"[NEWS] Cached {len(high_impact_usd)} high-impact USD events")
+        return high_impact_usd
+
+    except Exception as e:
+        logger.debug(f"[NEWS] Calendar fetch not available: {e}")
+        cached_events = []
+        events_cache_time = now
+        return []
+
+
+async def _async_get_calendar_events(conn, calendar_api):
+    """Async helper to fetch calendar events."""
+    try:
+        from datetime import timedelta as td
+        start = datetime.now(timezone.utc)
+        end = start + td(days=3)
+        events = await calendar_api.get_events(start, end)
+        return events
+    except Exception:
+        return []
+
+
+def check_news_filter(conn: MetaApiConnection) -> tuple:
+    """
+    Check if we're in a high-impact news window.
+    Returns (ok: bool, next_event_minutes: float, message: str)
+    """
+    try:
+        events = fetch_high_impact_events(conn)
+    except Exception:
+        events = []
+
+    if not events:
+        return True, 999, "[NEWS] No high-impact events in window"
+
+    now = datetime.now(timezone.utc)
+    for ev in events:
+        ev_time = ev["time"]
+        mins_until = (ev_time - now).total_seconds() / 60.0
+
+        # Within 30 min BEFORE event → block
+        if -15 <= mins_until <= NEWS_PAUSE_MINUTES_BEFORE:
+            if mins_until > 0:
+                msg = f"[REJECTED] High-impact USD news in {mins_until:.0f} mins: {ev['title']}"
+            else:
+                msg = f"[REJECTED] High-impact USD news event active: {ev['title']} (resume in {NEWS_RESUME_MINUTES_AFTER}min)"
+            return False, mins_until, msg
+
+        # Within 15 min AFTER event → still block
+        if -NEWS_RESUME_MINUTES_AFTER <= mins_until <= 0:
+            msg = f"[REJECTED] Post-news cooldown ({-mins_until:.0f}/{NEWS_RESUME_MINUTES_AFTER}min): {ev['title']}"
+            return False, mins_until, msg
+
+    return True, 999, "[NEWS] Clear — no event conflict"
+
+
+# ============================================================
+# EXISTING: Startup Test
+# ============================================================
+
 def startup_test(conn: MetaApiConnection):
     """On bot startup, place a 0.01 BUY and close after 30 seconds."""
     global startup_test_done
@@ -237,7 +401,6 @@ def startup_test(conn: MetaApiConnection):
             order_id = exec_result[0].get("order_id", "")
             logger.info(f"STARTUP TEST: Position opened (ID: {order_id}), closing in 30s")
             time.sleep(30)
-            # Use close_position to ONLY close the specific test trade, not create a new order
             close_result = close_position(position_id=order_id)
             if close_result and close_result.get("success"):
                 logger.info("=== STARTUP TEST: Position CLOSED — Connection OK ===")
@@ -248,6 +411,10 @@ def startup_test(conn: MetaApiConnection):
     except Exception as e:
         logger.error(f"STARTUP TEST FAILED: Exception: {e}")
 
+
+# ============================================================
+# EXISTING: Heartbeat Test
+# ============================================================
 
 def heartbeat_test(conn: MetaApiConnection):
     """Every HEARTBEAT_INTERVAL_MINUTES, place a 0.01 BUY and close after 30s."""
@@ -283,7 +450,6 @@ def heartbeat_test(conn: MetaApiConnection):
             order_id = exec_result[0].get("order_id", "")
             logger.info(f"HEARTBEAT: Test trade opened, closing in {HEARTBEAT_CLOSE_AFTER_SECONDS}s")
             time.sleep(HEARTBEAT_CLOSE_AFTER_SECONDS)
-            # Use close_position to ONLY close this specific test trade
             close_result = close_position(position_id=order_id)
             if close_result and close_result.get("success"):
                 logger.info(f"HEARTBEAT: Connection is ALIVE.")
@@ -362,7 +528,6 @@ def update_paper_positions(current_price: float, atr_val: float):
             elif sl and current_price >= sl:
                 pnl = (e - sl) * pv; reason = "TRAIL" if sl < e else "SL"; hit = True
         if hit:
-            # Apply backtest-matching spread
             pnl -= BACKTEST_SPREAD_PIPS * lot * 100
             daily_pnl += pnl
             p["pnl"] = pnl; p["reason"] = reason; p["close_price"] = current_price
@@ -394,7 +559,7 @@ def check_connection(conn: MetaApiConnection) -> bool:
 
 
 def v22_cycle(conn: MetaApiConnection):
-    """Single analysis + execution cycle (matches backtest exactly)."""
+    """Single analysis + execution cycle with all filters (v4.2)."""
     global positions, last_entry, daily_pnl, last_processed_m15_time
 
     # Check connection first
@@ -409,28 +574,19 @@ def v22_cycle(conn: MetaApiConnection):
     if m5_df is None or m15_df is None or m5_df.empty or m15_df.empty:
         return
 
-    # ====================================================
-    # NEW FIX #10: Only act when a NEW M15 candle has closed
-    # This makes the live bot match backtest behavior exactly
-    # ====================================================
+    # Only act when a NEW M15 candle has closed
     last_m15_time = m15_df.index[-1]
     if last_processed_m15_time is not None and last_m15_time <= last_processed_m15_time:
-        # Already processed this candle — skip (matches backtest loop)
         return
 
     now_utc = datetime.now(timezone.utc)
 
-    # Daily reset (matches backtest exactly)
+    # Daily reset
     if last_date is None:
         last_date_today()
     if last_date is not None and last_date != now_utc.date():
         daily_pnl = 0.0
         last_date = now_utc.date()
-
-    # Process closed trades, apply consecutive loss halt
-    for t in list(positions):
-        # This check happens INSIDE update_paper_positions actually
-        pass
 
     if halt_until and now_utc < halt_until:
         return
@@ -439,15 +595,11 @@ def v22_cycle(conn: MetaApiConnection):
 
     # SESSION FILTER
     if not is_in_trading_session(now_utc):
-        last_processed_m15_time = last_m15_time  # mark processed even out of session
+        last_processed_m15_time = last_m15_time
         return
 
-    # ====================================================
-    # NEW FIX #11: Match backtest window sizes exactly
-    # Backtest: m15w = m15.iloc[max(0,i-499):i+1]  => max 500 candles
-    # Backtest: m5w = m5u.tail(500)
-    # ====================================================
-    m15w = m15_df.tail(500).copy()  # exact match to backtest
+    # Match backtest window sizes exactly
+    m15w = m15_df.tail(500).copy()
     m5u = m5_df[m5_df.index <= last_m15_time]
     m5w = m5u.tail(500).copy()
 
@@ -455,7 +607,7 @@ def v22_cycle(conn: MetaApiConnection):
         last_processed_m15_time = last_m15_time
         return
 
-    # INDICATORS — same as backtest
+    # INDICATORS
     try:
         m5_ind = compute_all_indicators(m5w)
         m15_ind = compute_all_indicators(m15w)
@@ -476,13 +628,28 @@ def v22_cycle(conn: MetaApiConnection):
         last_processed_m15_time = last_m15_time
         return
 
+    # Compute ADX for dynamic TP (v4.2)
+    try:
+        adx_series = compute_adx(m5w["high"], m5w["low"], m5w["close"], period=14)
+        adx_val = float(adx_series.iloc[-1]) if not pd.isna(adx_series.iloc[-1]) else 0
+    except Exception:
+        adx_val = 0
+
+    # Dynamic TP based on ADX
+    if adx_val >= ADX_TREND_THRESHOLD:
+        tp_mult = TP_ATR_MULT_TREND
+        logger.info(f"[DYNAMIC TP] ADX={adx_val:.1f} > {ADX_TREND_THRESHOLD} → using {tp_mult}x ATR TP")
+    else:
+        tp_mult = TP_ATR_MULT
+
     current_price = float(m15w["close"].iloc[-1])
 
-    # UPDATE POSITIONS — same logic as backtest
+    # UPDATE POSITIONS
     positions[:] = update_paper_positions(current_price, atr_val)
 
     if consecutive_losses >= HALT_AFTER_LOSSES and halt_until is None:
         halt_until = now_utc + timedelta(hours=HALT_HOURS)
+        logger.warning(f"[HALT] {consecutive_losses} consecutive losses -> {HALT_HOURS}h pause")
         last_processed_m15_time = last_m15_time
         return
 
@@ -499,7 +666,21 @@ def v22_cycle(conn: MetaApiConnection):
         last_processed_m15_time = last_m15_time
         return
 
-    # RUN STRATEGY — same as backtest
+    # === NEW v4.2: SPREAD FILTER ===
+    spread_ok, spread_pts, spread_msg = check_spread(conn)
+    if not spread_ok:
+        logger.warning(spread_msg)
+        last_processed_m15_time = last_m15_time
+        return
+
+    # === NEW v4.2: NEWS FILTER ===
+    news_ok, news_mins, news_msg = check_news_filter(conn)
+    if not news_ok:
+        logger.warning(news_msg)
+        last_processed_m15_time = last_m15_time
+        return
+
+    # RUN STRATEGY
     strategy = GoldScalpingStrategy()
     strategy._max_trades_per_day = 50
     strategy._max_open_positions = MAX_POSITIONS
@@ -517,36 +698,41 @@ def v22_cycle(conn: MetaApiConnection):
     direction = result.get("direction", "NONE")
     score = result.get("setup_score", 0)
     if direction == "NONE" or score < MIN_SCORE:
+        logger.info(f"[REJECTED] Direction: {direction} Score: {score} (need ≥{MIN_SCORE})")
         last_processed_m15_time = last_m15_time
         return
 
-    # RSI CONFLUENCE FILTER (matches backtest)
+    # RSI CONFLUENCE FILTER
     try:
         rsi_bullish = m5_ind["rsi"].iloc[-1] > 40 and m15_ind["rsi"].iloc[-1] > 40
         rsi_bearish = m5_ind["rsi"].iloc[-1] < 60 and m15_ind["rsi"].iloc[-1] < 60
         if direction == "BUY" and not rsi_bullish:
+            logger.info(f"[REJECTED] RSI confluence: BUY requires RSI>40 on both M5 ({m5_ind['rsi'].iloc[-1]:.1f}) and M15 ({m15_ind['rsi'].iloc[-1]:.1f})")
             last_processed_m15_time = last_m15_time
             return
         if direction == "SELL" and not rsi_bearish:
+            logger.info(f"[REJECTED] RSI confluence: SELL requires RSI<60 on both M5 ({m5_ind['rsi'].iloc[-1]:.1f}) and M15 ({m15_ind['rsi'].iloc[-1]:.1f})")
             last_processed_m15_time = last_m15_time
             return
     except Exception:
-        pass  # Non-fatal
+        pass
 
-    # SYMMETRIC EMA200 FILTER (same as backtest)
+    # SYMMETRIC EMA200 FILTER
     closes = m15w["close"].values
     if len(closes) >= 200:
         ema200 = pd.Series(closes).ewm(200, adjust=False).mean().values
         if len(ema200) >= 10:
-            ema200_rising = float(ema200[-1]) > float(ema200[-10])
-            if direction == "BUY" and not ema200_rising:
+            rising = float(ema200[-1]) > float(ema200[-10])
+            if direction == "BUY" and not rising:
+                logger.info(f"[REJECTED] EMA200 trend: BUY requires EMA200 rising")
                 last_processed_m15_time = last_m15_time
                 return
-            if direction == "SELL" and ema200_rising:
+            if direction == "SELL" and rising:
+                logger.info(f"[REJECTED] EMA200 trend: SELL requires EMA200 falling")
                 last_processed_m15_time = last_m15_time
                 return
 
-    # VOLATILITY FILTER (fixed: pass DataFrame, not None)
+    # VOLATILITY FILTER
     vf = GoldVolatilityFilter()
     try:
         vo = vf.analyze(
@@ -554,14 +740,16 @@ def v22_cycle(conn: MetaApiConnection):
             m1_indicators=empty_m1, m5_indicators=m5_ind, m15_indicators=m15_ind,
         )
         if not vo.get("trade_ok", False):
+            logger.info(f"[REJECTED] Volatility filter: trade_ok=False")
             last_processed_m15_time = last_m15_time
             return
     except Exception:
-        pass  # Non-fatal, like backtest
+        pass
 
-    # ENTRY (matches backtest)
+    # ENTRY
     sl_dist = atr_val * SL_ATR_MULT
-    tp_dist = atr_val * TP_ATR_MULT
+    tp_dist = atr_val * tp_mult  # Dynamic: uses tp_mult from ADX check
+
     if direction == "BUY":
         sl = round(current_price - sl_dist, 2)
         tp = round(current_price + tp_dist, 2)
@@ -569,11 +757,11 @@ def v22_cycle(conn: MetaApiConnection):
         sl = round(current_price + sl_dist, 2)
         tp = round(current_price - tp_dist, 2)
 
-    # Account info for lot sizing — matches backtest
+    # Account info for lot sizing
     try:
         balance = conn.get_account_info()["balance"]
     except Exception:
-        balance = 304.99  # fallback to starting
+        balance = 304.99
     rp = get_risk_pct(balance)
     lot = max(0.01, round(balance * (rp / 100) / (sl_dist * 100), 2))
     lot = min(lot, 10.0)
@@ -594,16 +782,16 @@ def v22_cycle(conn: MetaApiConnection):
     positions.append(pos)
     last_entry = now_utc
 
-    logger.info(f"V22 SIGNAL: {direction} score={score} lot={lot} SL={sl} TP={tp} atr={atr_val:.2f}")
+    logger.info(f"✅ V22 SIGNAL: {direction} score={score} lot={lot} SL={sl} TP={tp} atr={atr_val:.2f} adx={adx_val:.1f} spread={spread_pts:.1f}pts {'[TREND TP]' if adx_val >= ADX_TREND_THRESHOLD else ''}")
 
-    # Mark this M15 candle as processed (matches backtest loop iteration)
+    # Mark this M15 candle as processed
     last_processed_m15_time = last_m15_time
     save_state()
 
 
 # State variable for daily reset
 last_date = None
-STARTING_BALANCE = 304.99  # default starting balance
+STARTING_BALANCE = 304.99
 
 def last_date_today():
     global last_date
@@ -613,13 +801,14 @@ def last_date_today():
 def run_v22():
     global last_date, STARTING_BALANCE
     logger.info("=" * 60)
-    logger.info("V22 GOLD SCALPING BOT — MetaApi Cloud (FINAL v4.1)")
-    logger.info("EXACT backtest behavior replication in live trading")
+    logger.info("V22 GOLD SCALPING BOT — MetaApi Cloud (v4.2)")
+    logger.info("Dynamic Spread Filter + News Filter + ADX Dynamic TP")
     logger.info("=" * 60)
-    logger.info(f"Config: MIN_SCORE={MIN_SCORE}, MAX_POS={MAX_POSITIONS}, TP={TP_ATR_MULT}x, SL={SL_ATR_MULT}x")
+    logger.info(f"Config: MIN_SCORE={MIN_SCORE}, MAX_POS={MAX_POSITIONS}, TP={TP_ATR_MULT}x/{TP_ATR_MULT_TREND}x, SL={SL_ATR_MULT}x")
     logger.info(f"Session: {TRADE_HOURS_START}:00-{TRADE_HOURS_END}:00 UTC (London+NY)")
-    logger.info(f"Heartbeat: every {HEARTBEAT_INTERVAL_MINUTES}min (0.01 lot, close after {HEARTBEAT_CLOSE_AFTER_SECONDS}s)")
-    logger.info(f"State persistence: ENABLED — survives restarts")
+    logger.info(f"Spread max: {MAX_SPREAD_POINTS} points | ADX trend threshold: {ADX_TREND_THRESHOLD}")
+    logger.info(f"News filter: ~{NEWS_PAUSE_MINUTES_BEFORE}min before / {NEWS_RESUME_MINUTES_AFTER}min after high-impact USD")
+    logger.info(f"Halt: {HALT_AFTER_LOSSES} losses = {HALT_HOURS}h pause | Daily loss: {DAILY_LOSS_PCT*100}%")
     logger.info(f"Execution: {'ENABLED' if Config.EXECUTION_ENABLED else 'PAPER ONLY'}")
     logger.info("=" * 60)
 
@@ -628,11 +817,9 @@ def run_v22():
         logger.critical("MetaApi init failed.")
         return
 
-    # RESTORE STATE on startup (NEW FIX #13)
     load_state()
     last_date = datetime.now(timezone.utc).date()
 
-    # STARTUP TEST: Place a 0.01 BUY and close after 30 seconds
     if not is_paused():
         startup_test(conn)
 
@@ -643,18 +830,15 @@ def run_v22():
             cycle += 1
             now_utc = datetime.now(timezone.utc)
 
-            # Heartbeat connection test
             if not is_paused():
                 heartbeat_test(conn)
 
-            # Main trading cycle
             if not is_paused():
                 v22_cycle(conn)
 
             if cycle % 10 == 0:
                 logger.info(f"Cycle #{cycle} | Open: {len(positions)} | Losses: {consecutive_losses} | Trades: {len(trades_log)}")
 
-            # Write state for dashboard
             try:
                 acc = conn.get_account_info()
                 bal = acc["balance"]
@@ -672,8 +856,6 @@ def run_v22():
             logger.error(f"Cycle #{cycle} error: {exc}", exc_info=True)
             save_state()
 
-        # Use shorter sleep to catch M15 closes (15 min = 900 sec)
-        # Default 1 min is fine; M15 gate prevents duplicate processing
         interval_min = getattr(Config, "ANALYSIS_INTERVAL_MINUTES", 1)
         time.sleep(interval_min * 60)
 

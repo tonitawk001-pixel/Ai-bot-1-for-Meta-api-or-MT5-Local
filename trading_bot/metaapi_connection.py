@@ -95,7 +95,7 @@ class MetaApiConnection:
             return False
 
     async def _async_initialize(self, timeout_in_seconds: int) -> bool:
-        self.api = MetaApi(self.token, {"region": self.region})
+        self.api = MetaApi(self.token)
 
         account_api = self.api.metatrader_account_api
         self.account = await account_api.get_account(self.account_id)

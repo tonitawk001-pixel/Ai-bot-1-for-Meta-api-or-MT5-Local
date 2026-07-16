@@ -67,7 +67,7 @@ HEARTBEAT_CLOSE_AFTER_SECONDS = 30
 BACKTEST_SPREAD_PIPS = 0.50
 
 # v4.2 config (kept)
-MAX_SPREAD_POINTS = 30
+MAX_SPREAD_POINTS = 45
 NEWS_PAUSE_MINUTES_BEFORE = 30
 NEWS_RESUME_MINUTES_AFTER = 15
 NEWS_CACHE_HOURS = 6
@@ -601,8 +601,12 @@ def sync_state_with_broker(conn: MetaApiConnection):
         logger.warning(f"[STATE SYNC] Could not sync (non-fatal): {e}")
 
 
+# Track consecutive connection failures for full re-init
+_connection_failures = 0
+
 def check_connection(conn: MetaApiConnection) -> bool:
-    """Hardened connection check with retry loop."""
+    """Hardened connection check with retry loop and full re-init on persistent failure."""
+    global _connection_failures
     max_retries = 3
     for attempt in range(1, max_retries + 1):
         try:
@@ -610,18 +614,38 @@ def check_connection(conn: MetaApiConnection) -> bool:
             if acc and "balance" in acc:
                 if attempt > 1:
                     logger.info(f"[CONNECT] Reconnected on attempt {attempt}")
+                _connection_failures = 0
                 return True
         except Exception as e:
             logger.warning(f"[CONNECT] Attempt {attempt}/{max_retries} failed: {e}")
             if attempt < max_retries:
                 conn._initialized = False
-                time.sleep(5 * attempt)  # Progressive backoff: 5s, 10s, 15s
+                time.sleep(5 * attempt)
                 try:
                     if conn.initialize():
+                        _connection_failures = 0
                         return True
                 except:
                     pass
-    logger.critical("[CONNECT] All reconnection attempts failed — manual intervention required")
+    
+    # If all 3 attempts failed, increment counter
+    _connection_failures += 1
+    
+    # After 3 consecutive failed attempts (9 total), force a full restart
+    if _connection_failures >= 3:
+        logger.critical(f"[CONNECT] {_connection_failures} consecutive failures — forcing full re-initialization")
+        try:
+            conn.shutdown()
+            time.sleep(10)
+            conn._initialized = False
+            if conn.initialize():
+                _connection_failures = 0
+                logger.info("[CONNECT] Full re-initialization successful")
+                return True
+        except Exception as e:
+            logger.error(f"[CONNECT] Full re-init also failed: {e}")
+    
+    logger.critical("[CONNECT] All reconnection attempts failed — will retry next cycle")
     return False
 
 

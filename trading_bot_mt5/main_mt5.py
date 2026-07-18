@@ -271,12 +271,19 @@ def main():
     last_date = datetime.now(timezone.utc).date()
     
     # Telegram startup
-    log_text = "Telegram: Chat ID not set. Message @tonitawk_bot first."
-    if tg.try_auto_detect_chat_id():
-        log_text = "Telegram: Connected!"
-        tg.set_account_name(f"Acc_{mt5.get_account_info().get('login', '?')}")
+    acc_name = f"Acc_{mt5.get_account_info().get('login', '?')}"
+    tg.set_account_name(acc_name)
+    
+    # If CHAT_ID is already hardcoded (not 0), send startup directly
+    if tg.CHAT_ID:
         tg.notify_startup()
-    logger.info(log_text)
+        logger.info("Telegram: Connected! Startup notification sent.")
+    else:
+        if tg.try_auto_detect_chat_id():
+            tg.notify_startup()
+            logger.info("Telegram: Auto-detected and connected!")
+        else:
+            logger.info("Telegram: Not configured. Message @Trading77777Bot first.")
 
     strategy = GoldScalpingStrategy()
     strategy._max_trades_per_day = 50

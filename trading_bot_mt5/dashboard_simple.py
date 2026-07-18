@@ -33,8 +33,19 @@ class Handler(BaseHTTPRequestHandler):
     def api_json(self):
         running = False
         if bot_pid:
-            try: os.kill(bot_pid, 0); running = True
-            except: pass
+            import subprocess
+            try:
+                r = subprocess.run(
+                    ['tasklist', '/FI', f'PID eq {bot_pid}', '/FO', 'CSV'],
+                    capture_output=True, text=True, timeout=5
+                )
+                running = 'python.exe' in r.stdout or 'Python' in r.stdout
+            except:
+                try:
+                    os.kill(bot_pid, 0)
+                    running = True
+                except:
+                    bot_pid = None
         
         bal = eq = login = "?"
         try:

@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 
 # === CONFIGURE THESE ===
 TOKEN = "8576199875:AAHYRdna3TxQwHP50cpd9isW128BzBuvFKM"
-CHAT_ID = 0  # <-- Will be auto-set on first run. Or you can set it manually.
+CHAT_ID = 5233262246  # Your Telegram Chat ID (ToniTawk)
 
 # Account name for multi-account support
 ACCOUNT_NAME = "Default"

@@ -1,0 +1,346 @@
+Traceback (most recent call last):
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 28, in <module>
+    from mt5_connection import MT5Connection
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 18, in <module>
+    from trading_bot.utils.logger import logger
+ModuleNotFoundError: No module named 'trading_bot'
+Traceback (most recent call last):
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 28, in <module>
+    from mt5_connection import MT5Connection
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 18, in <module>
+    from trading_bot.utils.logger import logger
+ModuleNotFoundError: No module named 'trading_bot'
+Traceback (most recent call last):
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 28, in <module>
+    from mt5_connection import MT5Connection
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 18, in <module>
+    from trading_bot.utils.logger import logger
+ModuleNotFoundError: No module named 'trading_bot'
+Traceback (most recent call last):
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 28, in <module>
+    from mt5_connection import MT5Connection
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 18, in <module>
+    from trading_bot.utils.logger import logger
+ModuleNotFoundError: No module named 'trading_bot'
+Traceback (most recent call last):
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 28, in <module>
+    from mt5_connection import MT5Connection
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 18, in <module>
+    from trading_bot.utils.logger import logger
+ModuleNotFoundError: No module named 'trading_bot'
+2026-07-19 05:07:17 | INFO     | TradingBot | ============================================================
+2026-07-19 05:07:17 | INFO     | TradingBot | V22 GOLD SCALPING BOT — Local MT5 Edition
+2026-07-19 05:07:17 | INFO     | TradingBot | Direct connection to your MT5 terminal
+2026-07-19 05:07:17 | INFO     | TradingBot | ============================================================
+2026-07-19 05:07:17 | INFO     | TradingBot | Connecting to local MT5 terminal...
+2026-07-19 05:07:17 | INFO     | TradingBot | Telegram: Connected! Startup notification sent.
+2026-07-19 05:07:17 | INFO     | TradingBot | GoldScalpingStrategy v4 initialized (XAUUSD only, 20 trades/day target).
+2026-07-19 05:07:17 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+2026-07-19 05:07:48 | INFO     | TradingBot | ============================================================
+2026-07-19 05:07:48 | INFO     | TradingBot | V22 GOLD SCALPING BOT — Local MT5 Edition
+2026-07-19 05:07:48 | INFO     | TradingBot | Direct connection to your MT5 terminal
+2026-07-19 05:07:48 | INFO     | TradingBot | ============================================================
+2026-07-19 05:07:48 | INFO     | TradingBot | Connecting to local MT5 terminal...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+2026-07-19 05:07:48 | INFO     | TradingBot | Telegram: Connected! Startup notification sent.
+2026-07-19 05:07:48 | INFO     | TradingBot | GoldScalpingStrategy v4 initialized (XAUUSD only, 20 trades/day target).
+2026-07-19 05:07:48 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+(XAUUSD only, 20 trades/day target).
+2026-07-19 05:07:48 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+2026-07-19 05:11:46 | INFO     | TradingBot | ============================================================
+2026-07-19 05:11:46 | INFO     | TradingBot | V22 GOLD SCALPING BOT — Local MT5 Edition
+2026-07-19 05:11:46 | INFO     | TradingBot | Direct connection to your MT5 terminal
+2026-07-19 05:11:46 | INFO     | TradingBot | ============================================================
+2026-07-19 05:11:46 | INFO     | TradingBot | Connecting to local MT5 terminal...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+2026-07-19 05:11:47 | INFO     | TradingBot | Telegram: Connected! Startup notification sent.
+2026-07-19 05:11:47 | INFO     | TradingBot | GoldScalpingStrategy v4 initialized (XAUUSD only, 20 trades/day target).
+2026-07-19 05:11:47 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+(XAUUSD only, 20 trades/day target).
+2026-07-19 05:11:47 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+2026-07-19 05:11:54 | INFO     | TradingBot | ============================================================
+2026-07-19 05:11:54 | INFO     | TradingBot | V22 GOLD SCALPING BOT — Local MT5 Edition
+2026-07-19 05:11:54 | INFO     | TradingBot | Direct connection to your MT5 terminal
+2026-07-19 05:11:54 | INFO     | TradingBot | ============================================================
+2026-07-19 05:11:54 | INFO     | TradingBot | Connecting to local MT5 terminal...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+2026-07-19 05:11:55 | INFO     | TradingBot | Telegram: Connected! Startup notification sent.
+2026-07-19 05:11:55 | INFO     | TradingBot | GoldScalpingStrategy v4 initialized (XAUUSD only, 20 trades/day target).
+2026-07-19 05:11:55 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+(XAUUSD only, 20 trades/day target).
+2026-07-19 05:11:55 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+2026-07-19 05:12:00 | INFO     | TradingBot | ============================================================
+2026-07-19 05:12:00 | INFO     | TradingBot | V22 GOLD SCALPING BOT — Local MT5 Edition
+2026-07-19 05:12:00 | INFO     | TradingBot | Direct connection to your MT5 terminal
+2026-07-19 05:12:00 | INFO     | TradingBot | ============================================================
+2026-07-19 05:12:00 | INFO     | TradingBot | Connecting to local MT5 terminal...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+2026-07-19 05:12:00 | INFO     | TradingBot | Telegram: Connected! Startup notification sent.
+2026-07-19 05:12:00 | INFO     | TradingBot | GoldScalpingStrategy v4 initialized (XAUUSD only, 20 trades/day target).
+2026-07-19 05:12:00 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+(XAUUSD only, 20 trades/day target).
+2026-07-19 05:12:00 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+2026-07-19 05:12:16 | INFO     | TradingBot | ============================================================
+2026-07-19 05:12:16 | INFO     | TradingBot | V22 GOLD SCALPING BOT — Local MT5 Edition
+2026-07-19 05:12:16 | INFO     | TradingBot | Direct connection to your MT5 terminal
+2026-07-19 05:12:16 | INFO     | TradingBot | ============================================================
+2026-07-19 05:12:16 | INFO     | TradingBot | Connecting to local MT5 terminal...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+2026-07-19 05:12:16 | INFO     | TradingBot | Telegram: Connected! Startup notification sent.
+2026-07-19 05:12:16 | INFO     | TradingBot | GoldScalpingStrategy v4 initialized (XAUUSD only, 20 trades/day target).
+2026-07-19 05:12:16 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+(XAUUSD only, 20 trades/day target).
+2026-07-19 05:12:16 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+2026-07-19 05:19:16 | INFO     | TradingBot | ============================================================
+2026-07-19 05:19:16 | INFO     | TradingBot | V22 GOLD SCALPING BOT — Local MT5 Edition
+2026-07-19 05:19:16 | INFO     | TradingBot | Direct connection to your MT5 terminal
+2026-07-19 05:19:16 | INFO     | TradingBot | ============================================================
+2026-07-19 05:19:16 | INFO     | TradingBot | Connecting to local MT5 terminal...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+2026-07-19 05:19:16 | INFO     | TradingBot | Telegram: Connected! Startup notification sent.
+2026-07-19 05:19:16 | INFO     | TradingBot | GoldScalpingStrategy v4 initialized (XAUUSD only, 20 trades/day target).
+2026-07-19 05:19:16 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+(XAUUSD only, 20 trades/day target).
+2026-07-19 05:19:16 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+2026-07-19 05:19:22 | INFO     | TradingBot | ============================================================
+2026-07-19 05:19:22 | INFO     | TradingBot | V22 GOLD SCALPING BOT — Local MT5 Edition
+2026-07-19 05:19:22 | INFO     | TradingBot | Direct connection to your MT5 terminal
+2026-07-19 05:19:22 | INFO     | TradingBot | ============================================================
+2026-07-19 05:19:22 | INFO     | TradingBot | Connecting to local MT5 terminal...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python312\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 46: character maps to <undefined>
+Call stack:
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 535, in <module>
+    main()
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\main_mt5.py", line 265, in main
+    if not mt5.initialize():
+  File "C:\visual studio code\Ai-bot-linked-to-Meta-api-MT5-made-by-deepseek\trading_bot_mt5\mt5_connection.py", line 67, in initialize
+    logger.info(f"\u2705 MT5 connected | Account: {login} | Server: {server} | Balance: ${balance:.2f}")
+Message: '\u2705 MT5 connected | Account: 7402367 | Server: FPMarketsSC-Demo | Balance: $100000.00'
+Arguments: ()
+2026-07-19 05:19:22 | INFO     | TradingBot | Telegram: Connected! Startup notification sent.
+2026-07-19 05:19:22 | INFO     | TradingBot | GoldScalpingStrategy v4 initialized (XAUUSD only, 20 trades/day target).
+2026-07-19 05:19:22 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
+(XAUUSD only, 20 trades/day target).
+2026-07-19 05:19:22 | INFO     | TradingBot | Bot started. Press Ctrl+C to stop.
